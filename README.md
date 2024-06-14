@@ -23,5 +23,5 @@ Before you start using this API, ensure you have the following installed:
 
 - **app.py**: Contains Flask routing calls for the API. It handles the web server logic.
 - **ServiceFile.py**: Contains the logic for converting PDF files to TEI XML using GROBID and then to JATS XML using XSLT.
-- **teixml/**: Directory containing XSLT templates and other necessary structures for TEI XML.
+- **teixml**: Directory containing XSLT templates and other necessary structures for TEI XML.
    
