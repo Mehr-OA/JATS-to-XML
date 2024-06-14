@@ -16,5 +16,6 @@ Before you start using this API, ensure you have the following installed:
    git clone https://github.com/Mehr-OA/pdf-to-jats.git
    cd pdf-to-jats
    
-   python app.py```
+   python app.py
+   ```
    
