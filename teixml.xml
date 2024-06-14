@@ -1,0 +1,264 @@
+<xsl:stylesheet version="2.0"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:tei="http://www.tei-c.org/ns/1.0"
+                xmlns:jats="http://jats.nlm.nih.gov"
+                exclude-result-prefixes="tei">
+
+    <xsl:output method="xml" indent="yes"/>
+    <xsl:strip-space elements="*"/>
+
+    <!-- Root template for the TEI document -->
+    <xsl:template match="/tei:TEI">
+        <jats:article article-type="research-article">
+            <jats:front>
+                <jats:journal-meta>
+                    <!-- Placeholder for journal metadata if available -->
+                </jats:journal-meta>
+                <jats:article-meta>
+                    <xsl:apply-templates select="tei:teiHeader/tei:fileDesc"/>
+                </jats:article-meta>
+            </jats:front>
+
+            <xsl:apply-templates select="tei:text"/>
+            <!-- Additional templates for the body and back sections would be needed -->
+        </jats:article>
+    </xsl:template>
+
+    <xsl:template match="tei:profileDesc/tei:abstract">
+        <jats:abstract>
+            <xsl:for-each select="tei:p">
+                <jats:p><xsl:value-of select="."/></jats:p>
+            </xsl:for-each>
+        </jats:abstract>
+    </xsl:template>
+
+    <!-- Template for title and publication date -->
+    <xsl:template match="tei:fileDesc">
+        <xsl:apply-templates select="tei:titleStmt"/>
+        <xsl:apply-templates select="tei:publicationStmt"/>
+        <xsl:apply-templates select="tei:sourceDesc/tei:biblStruct"/>
+        <xsl:apply-templates select="../tei:profileDesc/tei:abstract"/>
+    </xsl:template>
+
+    <!-- Template for the document title -->
+    <xsl:template match="tei:titleStmt">
+        <jats:title-group>
+            <jats:article-title>
+                <xsl:value-of select="tei:title"/>
+            </jats:article-title>
+        </jats:title-group>
+    </xsl:template>
+
+    <!-- Template for publication date -->
+    <xsl:template match="tei:publicationStmt">
+        <jats:pub-date date-type="published">
+            <jats:day><xsl:value-of select="substring(tei:date/@when, 9, 2)"/></jats:day>
+            <jats:month><xsl:value-of select="substring(tei:date/@when, 6, 2)"/></jats:month>
+            <jats:year><xsl:value-of select="substring(tei:date/@when, 1, 4)"/></jats:year>
+        </jats:pub-date>
+    </xsl:template>
+
+    <!-- Template for DOI and other identifiers -->
+    <xsl:template match="tei:biblStruct">
+        <jats:article-meta>
+            <!-- Handle the DOI -->
+            <jats:article-id pub-id-type="doi">
+                <xsl:value-of select="tei:idno[@type='DOI']"/>
+            </jats:article-id>
+            
+            <!-- Process authors -->
+            <xsl:for-each select="tei:analytic/tei:author">
+                <jats:contrib-group>
+                    <jats:contrib contrib-type="author">
+                        <jats:name>
+                            <jats:given-names>
+                                <xsl:for-each select="tei:persName/tei:forename">
+                                    <xsl:if test="position() > 1"><xsl:text> </xsl:text></xsl:if>
+                                    <xsl:value-of select="."/>
+                                </xsl:for-each>
+                            </jats:given-names>
+                            <jats:surname>
+                                <xsl:value-of select="tei:persName/tei:surname"/>
+                            </jats:surname>
+                        </jats:name>
+                        <!-- Process affiliations if present -->
+                        <xsl:if test="tei:affiliation">
+                            <xsl:apply-templates select="tei:affiliation"/>
+                        </xsl:if>
+                    </jats:contrib>
+                </jats:contrib-group>
+            </xsl:for-each>
+        </jats:article-meta>
+
+        <!-- Add more identifiers as needed -->
+    </xsl:template>
+
+    <xsl:template match="tei:affiliation">
+        <jats:aff id="{@key}">
+            <jats:institution><xsl:value-of select="tei:orgName[@type='institution']"/></jats:institution>
+            <jats:addr-line><xsl:value-of select="tei:address/tei:addrLine"/></jats:addr-line>
+            <jats:city><xsl:value-of select="tei:address/tei:settlement"/></jats:city>
+            <jats:country><xsl:value-of select="tei:address/tei:country"/></jats:country>
+        </jats:aff>
+    </xsl:template>
+
+    <!-- Template for notes, such as submission notes -->
+    <xsl:template match="tei:note[@type='submission']">
+        <jats:notes>
+            <jats:note><xsl:value-of select="."/></jats:note>
+        </jats:notes>
+    </xsl:template>
+
+    <!-- Add templates for the body and back content as needed -->
+
+    <xsl:template match="tei:text">
+        <!-- You might want to structure the body content within specific JATS elements -->
+        <jats:body>
+            <xsl:apply-templates select="tei:body"/>
+        </jats:body>
+        <jats:back>
+            <xsl:apply-templates select="tei:back"/>
+        </jats:back>
+    </xsl:template>
+    
+    <!-- Template for the body content -->
+    <xsl:template match="tei:body">
+        <!-- Transformation logic for the body's children, such as 'div' elements -->
+        <xsl:apply-templates select="tei:div"/>
+        <xsl:apply-templates select="tei:table"/>
+        <xsl:apply-templates select="tei:figure"/>
+    </xsl:template>
+
+    <!-- Templates for other elements like 'div', 'p', 'head', etc. would go here -->
+    <!-- Example template for 'div' -->
+    <xsl:template match="tei:div">
+        <jats:sec>
+            <!-- Apply templates for elements within 'div', like 'head' or 'p' -->
+            <xsl:apply-templates/>
+        </jats:sec>
+    </xsl:template>
+
+    <!-- Example template for paragraph 'p' -->
+    <xsl:template match="tei:p">
+        <jats:p>
+            <xsl:apply-templates/>
+        </jats:p>
+    </xsl:template>
+
+    <xsl:template match="tei:list">
+        <jats:list list-type="{@type}">
+            <xsl:apply-templates select="tei:item"/>
+        </jats:list>
+    </xsl:template>
+
+    <xsl:template match="tei:item">
+        <jats:list-item>
+            <xsl:apply-templates/>
+        </jats:list-item>
+    </xsl:template>
+
+    <xsl:template match="tei:table">
+    <jats:table-wrap>
+        <jats:label><xsl:value-of select="@xml:id"/></jats:label>
+        <jats:table>
+            <jats:tbody>
+                <xsl:apply-templates select="tei:row"/>
+            </jats:tbody>
+        </jats:table>
+    </jats:table-wrap>
+</xsl:template>
+
+<xsl:template match="tei:row">
+    <jats:tr>
+        <xsl:apply-templates/>
+    </jats:tr>
+</xsl:template>
+
+<xsl:template match="tei:cell">
+    <jats:td>
+        <xsl:apply-templates/>
+    </jats:td>
+</xsl:template>
+
+<xsl:template match="tei:figure">
+    <jats:fig>
+        <jats:label><xsl:value-of select="tei:head"/></jats:label>
+        <jats:caption>
+            <jats:p><xsl:value-of select="tei:figDesc"/></jats:p>
+        </jats:caption>
+    </jats:fig>
+</xsl:template>
+
+<xsl:template match="tei:figure[@type='table']">
+    <jats:table-wrap id="{@xml:id}">
+        <jats:label><xsl:value-of select="tei:head"/></jats:label>
+        <jats:caption>
+            <jats:title><xsl:value-of select="tei:head"/></jats:title>
+            <jats:p><xsl:value-of select="tei:figDesc"/></jats:p>
+        </jats:caption>
+        <jats:table>
+            <jats:thead>
+                <jats:tr>
+                    <xsl:apply-templates select="tei:table/tei:row[1]" mode="header"/>
+                </jats:tr>
+            </jats:thead>
+            <jats:tbody>
+                <xsl:apply-templates select="tei:table/tei:row[position() > 1]"/>
+            </jats:tbody>
+        </jats:table>
+    </jats:table-wrap>
+</xsl:template>
+
+<xsl:template match="tei:row" mode="header">
+    <xsl:for-each select="tei:cell">
+        <jats:th>
+            <xsl:apply-templates/>
+        </jats:th>
+    </xsl:for-each>
+</xsl:template>
+
+<xsl:template match="tei:row">
+    <jats:tr>
+        <xsl:for-each select="tei:cell">
+            <jats:td>
+                <xsl:apply-templates/>
+            </jats:td>
+        </xsl:for-each>
+    </jats:tr>
+</xsl:template>
+
+<xsl:template match="tei:ref[@type='bibr']">
+    <jats:xref ref-type="bibr" rid="{substring-after(@target, '#')}">
+        <xsl:value-of select="."/>
+    </jats:xref>
+</xsl:template>
+
+<xsl:template match="tei:back/tei:listBibl">
+    <jats:ref-list>
+        <jats:title>References</jats:title>
+        <xsl:apply-templates select="tei:biblStruct"/>
+    </jats:ref-list>
+</xsl:template>
+
+<xsl:template match="tei:biblStruct">
+    <jats:ref id="{@xml:id}">
+        <jats:mixed-citation>
+            <jats:article-title><xsl:value-of select="tei:analytic/tei:title"/></jats:article-title>,
+            <xsl:apply-templates select="tei:analytic/tei:author/tei:persName"/>
+            <jats:source><xsl:value-of select="tei:monogr/tei:title"/></jats:source>,
+            <jats:volume><xsl:value-of select="tei:monogr/tei:imprint/tei:biblScope[@unit='volume']"/></jats:volume>,
+            <jats:page><xsl:value-of select="tei:monogr/tei:imprint/tei:biblScope[@unit='page']"/></jats:page> 
+            (<jats:year><xsl:value-of select="tei:monogr/tei:imprint/tei:date/@when"/></jats:year>).
+            <jats:pub-id pub-id-type="doi"><xsl:value-of select="tei:analytic/tei:idno[@type='DOI']"/></jats:pub-id>
+        </jats:mixed-citation>
+    </jats:ref>
+</xsl:template>
+
+<xsl:template match="tei:analytic/tei:author/tei:persName">
+    <jats:name>
+        <jats:surname><xsl:value-of select="tei:surname"/></jats:surname>,
+        <jats:given-names><xsl:value-of select="tei:forename[@type='first']"/></jats:given-names>
+    </jats:name>
+</xsl:template>
+
+</xsl:stylesheet>

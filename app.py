@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from FileService import process_file
+from FileService import process_file, pdf_to_txt, pdf_to_xml
 
 app = Flask(__name__)
 
@@ -9,10 +9,11 @@ def create_xml():
 
     if not fileName:
         return jsonify({"error": "Invalid or missing fileName"}), 400
-
+    print(fileName)
     try:
-        xml_str = process_file(fileName)
-        return xml_str, 200, {'Content-Type': 'application/xml'}
+        #xml_str = process_file(fileName)
+        return pdf_to_xml(fileName)
+        #return xml_str, 200, {'Content-Type': 'application/xml'}
     except FileNotFoundError:
         return jsonify({"error": "File not found"}), 404
     except Exception as e:
